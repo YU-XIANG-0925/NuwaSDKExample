@@ -213,61 +213,112 @@ public class StartNuwaAuthorizationActivity extends AppCompatActivity implements
         }
     };
 
-    @Override
-    public void onClick(View view) {
-        tvResult.setText("");
-        switch (view.getId()) {
-            case R.id.ib_btn_quit:
-                finish();
-                break;
-            case R.id.btn_start_auth_search:// Solution 1 Step1: Search authorization status
-                Intent searchIntent1 = new Intent();
-                searchIntent1.setComponent(new ComponentName(AUTH_SERVICE_PACKAGE, AUTH_SERVICE_ACTIVITY));
-                searchIntent1.putExtra(PACKAGE_NAME, getApplication().getPackageName());
-                searchIntent1.putExtra(PROVIDER_NAME, "NUWA");
-                // *Note that this parameter must be transmitted
-                searchIntent1.putExtra(SEARCH_ONLY, true);
-                startActivityForResult(searchIntent1, SEARCH_REQUEST_CODE);
-                break;
-            case R.id.btn_start_auth:// Solution 1 Step2: Launch NUWA Authorization
-                // Call up the authorization page to activate the authorization
-                Intent activateIntent = new Intent();
-                activateIntent.setComponent(new ComponentName(AUTH_SERVICE_PACKAGE, AUTH_SERVICE_ACTIVITY));
-                // package name
-                activateIntent.putExtra(PACKAGE_NAME, getApplication().getPackageName());
-                // Use your company's name instead of "NUWA"
-                activateIntent.putExtra(PROVIDER_NAME, "NUWA");
-                startActivityForResult(activateIntent, REQUEST_CODE);
-                break;
-            case R.id.btn_get_auth:
-                // Solution 2 Step2: Search authorization status
-                // Send query broadcast, note that the package name must be transmitted
-                Intent searchIntent = new Intent();
-                searchIntent.setComponent(new ComponentName(AUTH_SERVICE_PACKAGE, AUTH_SERVICE_RECEIVER));
-                searchIntent.setAction(ACTION_AUTH_SEARCH);
-                // package name
-                searchIntent.putExtra(PACKAGE_NAME, getApplication().getPackageName());
-                sendBroadcast(searchIntent);
-                break;
-            case R.id.btn_set_auth_broadcast:// Solution 2 Step3: Activate authorization
-                // Use your own authorization page to activate authorization
-                // Send the activation authorization broadcast at the appropriate time, and transmit the application package name and authorization code
-                String code = etCode.getText().toString().trim();
-                if (!checkCode(code)) {
-                    Toast.makeText(this, getString(R.string.start_auth_example_activate_input_tip), Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                Intent activateIntent2 = new Intent();
-                activateIntent2.setComponent(new ComponentName(AUTH_SERVICE_PACKAGE, AUTH_SERVICE_RECEIVER));
-                activateIntent2.setAction(ACTION_LICENCE_AUTH);
-                // package name
-                activateIntent2.putExtra(PACKAGE_NAME, getApplication().getPackageName());
-                // authorization code
-                activateIntent2.putExtra(AUTH_CODE, code);
-                sendBroadcast(activateIntent2);
-                break;
+//    @Override
+//    public void onClick(View view) {
+//        tvResult.setText("");
+//        switch (view.getId()) {
+//            case R.id.ib_btn_quit:
+//                finish();
+//                break;
+//            case R.id.btn_start_auth_search:// Solution 1 Step1: Search authorization status
+//                Intent searchIntent1 = new Intent();
+//                searchIntent1.setComponent(new ComponentName(AUTH_SERVICE_PACKAGE, AUTH_SERVICE_ACTIVITY));
+//                searchIntent1.putExtra(PACKAGE_NAME, getApplication().getPackageName());
+//                searchIntent1.putExtra(PROVIDER_NAME, "NUWA");
+//                // *Note that this parameter must be transmitted
+//                searchIntent1.putExtra(SEARCH_ONLY, true);
+//                startActivityForResult(searchIntent1, SEARCH_REQUEST_CODE);
+//                break;
+//            case R.id.btn_start_auth:// Solution 1 Step2: Launch NUWA Authorization
+//                // Call up the authorization page to activate the authorization
+//                Intent activateIntent = new Intent();
+//                activateIntent.setComponent(new ComponentName(AUTH_SERVICE_PACKAGE, AUTH_SERVICE_ACTIVITY));
+//                // package name
+//                activateIntent.putExtra(PACKAGE_NAME, getApplication().getPackageName());
+//                // Use your company's name instead of "NUWA"
+//                activateIntent.putExtra(PROVIDER_NAME, "NUWA");
+//                startActivityForResult(activateIntent, REQUEST_CODE);
+//                break;
+//            case R.id.btn_get_auth:
+//                // Solution 2 Step2: Search authorization status
+//                // Send query broadcast, note that the package name must be transmitted
+//                Intent searchIntent = new Intent();
+//                searchIntent.setComponent(new ComponentName(AUTH_SERVICE_PACKAGE, AUTH_SERVICE_RECEIVER));
+//                searchIntent.setAction(ACTION_AUTH_SEARCH);
+//                // package name
+//                searchIntent.putExtra(PACKAGE_NAME, getApplication().getPackageName());
+//                sendBroadcast(searchIntent);
+//                break;
+//            case R.id.btn_set_auth_broadcast:// Solution 2 Step3: Activate authorization
+//                // Use your own authorization page to activate authorization
+//                // Send the activation authorization broadcast at the appropriate time, and transmit the application package name and authorization code
+//                String code = etCode.getText().toString().trim();
+//                if (!checkCode(code)) {
+//                    Toast.makeText(this, getString(R.string.start_auth_example_activate_input_tip), Toast.LENGTH_SHORT).show();
+//                    return;
+//                }
+//                Intent activateIntent2 = new Intent();
+//                activateIntent2.setComponent(new ComponentName(AUTH_SERVICE_PACKAGE, AUTH_SERVICE_RECEIVER));
+//                activateIntent2.setAction(ACTION_LICENCE_AUTH);
+//                // package name
+//                activateIntent2.putExtra(PACKAGE_NAME, getApplication().getPackageName());
+//                // authorization code
+//                activateIntent2.putExtra(AUTH_CODE, code);
+//                sendBroadcast(activateIntent2);
+//                break;
+//        }
+//    }
+@Override
+public void onClick(View view) {
+    tvResult.setText("");
+    int id = view.getId(); // Get the ID of the clicked view
+
+    if (id == R.id.ib_btn_quit) {
+        finish();
+    } else if (id == R.id.btn_start_auth_search) { // Solution 1 Step1: Search authorization status
+        Intent searchIntent1 = new Intent();
+        searchIntent1.setComponent(new ComponentName(AUTH_SERVICE_PACKAGE, AUTH_SERVICE_ACTIVITY));
+        searchIntent1.putExtra(PACKAGE_NAME, getApplication().getPackageName());
+        searchIntent1.putExtra(PROVIDER_NAME, "NUWA");
+        // *Note that this parameter must be transmitted
+        searchIntent1.putExtra(SEARCH_ONLY, true);
+        startActivityForResult(searchIntent1, SEARCH_REQUEST_CODE);
+    } else if (id == R.id.btn_start_auth) { // Solution 1 Step2: Launch NUWA Authorization
+        // Call up the authorization page to activate the authorization
+        Intent activateIntent = new Intent();
+        activateIntent.setComponent(new ComponentName(AUTH_SERVICE_PACKAGE, AUTH_SERVICE_ACTIVITY));
+        // package name
+        activateIntent.putExtra(PACKAGE_NAME, getApplication().getPackageName());
+        // Use your company's name instead of "NUWA"
+        activateIntent.putExtra(PROVIDER_NAME, "NUWA");
+        startActivityForResult(activateIntent, REQUEST_CODE);
+    } else if (id == R.id.btn_get_auth) {
+        // Solution 2 Step2: Search authorization status
+        // Send query broadcast, note that the package name must be transmitted
+        Intent searchIntent = new Intent();
+        searchIntent.setComponent(new ComponentName(AUTH_SERVICE_PACKAGE, AUTH_SERVICE_RECEIVER));
+        searchIntent.setAction(ACTION_AUTH_SEARCH);
+        // package name
+        searchIntent.putExtra(PACKAGE_NAME, getApplication().getPackageName());
+        sendBroadcast(searchIntent);
+    } else if (id == R.id.btn_set_auth_broadcast) { // Solution 2 Step3: Activate authorization
+        // Use your own authorization page to activate authorization
+        // Send the activation authorization broadcast at the appropriate time, and transmit the application package name and authorization code
+        String code = etCode.getText().toString().trim();
+        if (!checkCode(code)) {
+            Toast.makeText(this, getString(R.string.start_auth_example_activate_input_tip), Toast.LENGTH_SHORT).show();
+            return;
         }
+        Intent activateIntent2 = new Intent();
+        activateIntent2.setComponent(new ComponentName(AUTH_SERVICE_PACKAGE, AUTH_SERVICE_RECEIVER));
+        activateIntent2.setAction(ACTION_LICENCE_AUTH);
+        // package name
+        activateIntent2.putExtra(PACKAGE_NAME, getApplication().getPackageName());
+        // authorization code
+        activateIntent2.putExtra(AUTH_CODE, code);
+        sendBroadcast(activateIntent2);
     }
+}
 
     /**
      * The specification of the NUWA authorization code must be "16 digits, including both uppercase letters and numbers"

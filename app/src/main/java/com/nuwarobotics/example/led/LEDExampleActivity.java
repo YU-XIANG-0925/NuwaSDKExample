@@ -103,19 +103,29 @@ public class LEDExampleActivity extends AppCompatActivity {
                 * @param g The GREEN color value from 0 to 255.
                 * @param b The BLUE color value from 0 to 255.
                 */
-        switch(view.getId()) {
-            case R.id.btn_face :
-                mRobotAPI.setLedColor(1,255,Integer.parseInt(mEditR.getText().toString()),Integer.parseInt(mEditG.getText().toString()),Integer.parseInt(mEditB.getText().toString()));
-                break;
-            case R.id.btn_body :
-                mRobotAPI.setLedColor(2,255,Integer.parseInt(mEditR.getText().toString()),Integer.parseInt(mEditG.getText().toString()),Integer.parseInt(mEditB.getText().toString()));
-                break;
-            case R.id.btn_hand_left :
-                mRobotAPI.setLedColor(3,255,Integer.parseInt(mEditR.getText().toString()),Integer.parseInt(mEditG.getText().toString()),Integer.parseInt(mEditB.getText().toString()));
-                break;
-            case R.id.btn_hand_right :
-                mRobotAPI.setLedColor(4,255,Integer.parseInt(mEditR.getText().toString()),Integer.parseInt(mEditG.getText().toString()),Integer.parseInt(mEditB.getText().toString()));
-                break;
+//        switch(view.getId()) {
+//            case R.id.btn_face :
+//                mRobotAPI.setLedColor(1,255,Integer.parseInt(mEditR.getText().toString()),Integer.parseInt(mEditG.getText().toString()),Integer.parseInt(mEditB.getText().toString()));
+//                break;
+//            case R.id.btn_body :
+//                mRobotAPI.setLedColor(2,255,Integer.parseInt(mEditR.getText().toString()),Integer.parseInt(mEditG.getText().toString()),Integer.parseInt(mEditB.getText().toString()));
+//                break;
+//            case R.id.btn_hand_left :
+//                mRobotAPI.setLedColor(3,255,Integer.parseInt(mEditR.getText().toString()),Integer.parseInt(mEditG.getText().toString()),Integer.parseInt(mEditB.getText().toString()));
+//                break;
+//            case R.id.btn_hand_right :
+//                mRobotAPI.setLedColor(4,255,Integer.parseInt(mEditR.getText().toString()),Integer.parseInt(mEditG.getText().toString()),Integer.parseInt(mEditB.getText().toString()));
+//                break;
+//        }
+        int id = view.getId();
+        if (id == R.id.btn_face) {
+            mRobotAPI.setLedColor(1, 255, Integer.parseInt(mEditR.getText().toString()), Integer.parseInt(mEditG.getText().toString()), Integer.parseInt(mEditB.getText().toString()));
+        } else if (id == R.id.btn_body) {
+            mRobotAPI.setLedColor(2, 255, Integer.parseInt(mEditR.getText().toString()), Integer.parseInt(mEditG.getText().toString()), Integer.parseInt(mEditB.getText().toString()));
+        } else if (id == R.id.btn_hand_left) {
+            mRobotAPI.setLedColor(3, 255, Integer.parseInt(mEditR.getText().toString()), Integer.parseInt(mEditG.getText().toString()), Integer.parseInt(mEditB.getText().toString()));
+        } else if (id == R.id.btn_hand_right) {
+            mRobotAPI.setLedColor(4, 255, Integer.parseInt(mEditR.getText().toString()), Integer.parseInt(mEditG.getText().toString()), Integer.parseInt(mEditB.getText().toString()));
         }
 
     }

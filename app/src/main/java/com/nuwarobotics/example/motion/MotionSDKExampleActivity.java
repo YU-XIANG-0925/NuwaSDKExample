@@ -46,20 +46,31 @@ public class MotionSDKExampleActivity extends BaseAppCompatActivity implements V
 
     @Override
     public void onClick(View v){
-        switch(v.getId()){
-            case R.id.btn_example1:
-                launchActivity(QueryMotionActivity.class);
-                break;
-            case R.id.btn_example2:
-                launchActivity(PlayMotionActivity.class);
-                break;
-            case R.id.btn_example3:
-                launchActivity(ControlMotionActivity.class);
-                break;
-            case R.id.btn_example4:
-                launchActivity(WindowControlWithMotionActivity.class);
-                break;
+//        switch(v.getId()){
+//            case R.id.btn_example1:
+//                launchActivity(QueryMotionActivity.class);
+//                break;
+//            case R.id.btn_example2:
+//                launchActivity(PlayMotionActivity.class);
+//                break;
+//            case R.id.btn_example3:
+//                launchActivity(ControlMotionActivity.class);
+//                break;
+//            case R.id.btn_example4:
+//                launchActivity(WindowControlWithMotionActivity.class);
+//                break;
+//        }
+        int id = v.getId();
+        if(id == R.id.btn_example1){
+            launchActivity(QueryMotionActivity.class);
+        }else if(id == R.id.btn_example2){
+            launchActivity(PlayMotionActivity.class);
+        }else if(id == R.id.btn_example3){
+            launchActivity(ControlMotionActivity.class);
+        }else if(id == R.id.btn_example4){
+            launchActivity(WindowControlWithMotionActivity.class);
         }
+
     }
 
 }

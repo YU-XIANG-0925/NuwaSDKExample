@@ -5,7 +5,13 @@ repositories {
     }
 }
 android {
+    namespace 'com.nuwarobotics.example'
     compileSdkVersion 28
+
+    buildFeatures {
+        buildConfig true
+    }
+
     defaultConfig {
         applicationId "com.nuwarobotics.example"
         minSdkVersion 28
@@ -42,4 +48,6 @@ dependencies {
     //Step 1 : Copy aar to project lib folder : NuwaSDKExample\app\libs
     //Step 2 : Replace below NuwaBleInterface file name
     implementation(name: 'NuwaBLEInterface_2020-11-27_v1.0_62415eb_release', ext: 'aar')
+
+    implementation "com.google.code.gson:gson:2.3.1"
 }

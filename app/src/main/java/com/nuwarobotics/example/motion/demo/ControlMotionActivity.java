@@ -126,52 +126,94 @@ public class ControlMotionActivity extends BaseAppCompatActivity implements View
     public void onClick(View v){
         //Step 2 : Setup the click action of  "Play/Pause/Resume/Stop motion"
         //Play motion without transparent view for the demo of other actions
-        switch(v.getId()){
-            case R.id.btn_play:
-                showEventMsg("[Click Button]Play");
-                PopupMenu popup = new PopupMenu(ControlMotionActivity.this, findViewById(R.id.btn_play));
-                popup.getMenuInflater().inflate(R.menu.popup_menu_querymotions, popup.getMenu());
-                popup.getMenu().clear();
+//        switch(v.getId()){
+//            case R.id.btn_play:
+//                showEventMsg("[Click Button]Play");
+//                PopupMenu popup = new PopupMenu(ControlMotionActivity.this, findViewById(R.id.btn_play));
+//                popup.getMenuInflater().inflate(R.menu.popup_menu_querymotions, popup.getMenu());
+//                popup.getMenu().clear();
+//
+//                String[] itemList = {
+//                        "666_RE_Bye",
+//                        "666_TA_LookRL",
+//                        "666_PE_Killed",
+//                        "666_DA_Scratching",
+//                        "666_IM_Rooster",
+//                        "666_TA_LookLR",
+//                        "666_PE_PlayGuitar",
+//                        "666_DA_PickUp"};
+//
+//                for(String item : itemList) {
+//                    popup.getMenu().add(item);
+//                }
+//
+//                popup.setOnMenuItemClickListener((item)->{
+//                    mRobotAPI.motionStop(true);
+//                    mRobotAPI.motionPlay(item.getTitle().toString(), false);
+//                    return true;
+//                });
+//
+//                popup.show();
+//
+//                break;
+//            case R.id.btn_pause:
+//                showEventMsg("[Click Button]Pause");
+//                mRobotAPI.motionPause();
+//                break;
+//            case R.id.btn_resume:
+//                showEventMsg("[Click Button]Resume");
+//                mRobotAPI.motionResume();
+//                break;
+//            case R.id.btn_stop:
+//                showEventMsg("[Click Button]Stop");
+//                mRobotAPI.motionStop(true);
+//                break;
+//            case R.id.play_status:
+//                mTexPlayStatus.setText("");
+//            default:
+//                Log.d(TAG, "Can't find the clicking action of view!!!");
+//        }
+        int id = v.getId();
+        if (id == R.id.btn_play) {
+            showEventMsg("[Click Button]Play");
+            PopupMenu popup = new PopupMenu(ControlMotionActivity.this, findViewById(R.id.btn_play));
+            popup.getMenuInflater().inflate(R.menu.popup_menu_querymotions, popup.getMenu());
+            popup.getMenu().clear();
 
-                String[] itemList = {
-                        "666_RE_Bye",
-                        "666_TA_LookRL",
-                        "666_PE_Killed",
-                        "666_DA_Scratching",
-                        "666_IM_Rooster",
-                        "666_TA_LookLR",
-                        "666_PE_PlayGuitar",
-                        "666_DA_PickUp"};
+            String[] itemList = {
+                    "666_RE_Bye",
+                    "666_TA_LookRL",
+                    "666_PE_Killed",
+                    "666_DA_Scratching",
+                    "666_IM_Rooster",
+                    "666_TA_LookLR",
+                    "666_PE_PlayGuitar",
+                    "666_DA_PickUp"};
 
-                for(String item : itemList) {
-                    popup.getMenu().add(item);
-                }
+            for (String item : itemList) {
+                popup.getMenu().add(item);
+            }
 
-                popup.setOnMenuItemClickListener((item)->{
-                    mRobotAPI.motionStop(true);
-                    mRobotAPI.motionPlay(item.getTitle().toString(), false);
-                    return true;
-                });
-
-                popup.show();
-
-                break;
-            case R.id.btn_pause:
-                showEventMsg("[Click Button]Pause");
-                mRobotAPI.motionPause();
-                break;
-            case R.id.btn_resume:
-                showEventMsg("[Click Button]Resume");
-                mRobotAPI.motionResume();
-                break;
-            case R.id.btn_stop:
-                showEventMsg("[Click Button]Stop");
+            popup.setOnMenuItemClickListener((item) -> {
                 mRobotAPI.motionStop(true);
-                break;
-            case R.id.play_status:
-                mTexPlayStatus.setText("");
-            default:
-                Log.d(TAG, "Can't find the clicking action of view!!!");
+                mRobotAPI.motionPlay(item.getTitle().toString(), false);
+                return true;
+            });
+
+            popup.show();
+        } else if (id == R.id.btn_pause) {
+            showEventMsg("[Click Button]Pause");
+            mRobotAPI.motionPause();
+        } else if (id == R.id.btn_resume) {
+            showEventMsg("[Click Button]Resume");
+            mRobotAPI.motionResume();
+        } else if (id == R.id.btn_stop) {
+            showEventMsg("[Click Button]Stop");
+            mRobotAPI.motionStop(true);
+        } else if (id == R.id.play_status) {
+            mTexPlayStatus.setText("");
+        } else {
+            Log.d(TAG, "Can't find the clicking action of view!!!");
         }
     }
 

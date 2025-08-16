@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white"
+    android:padding="16dp">
+
+    <!-- 中央的機器人背景圖片 -->
+    <ImageView
+        android:id="@+id/imageView_robot"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:src="@drawable/kebbi_air_bg"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="ContentDescription" />
+
+    <!-- 左側馬達數據 -->
+    <!-- 左肩 Z -->
+    <LinearLayout
+        android:id="@+id/layout_l_shoulder_z"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toStartOf="@+id/imageView_robot"
+        app:layout_constraintTop_toTopOf="@+id/imageView_robot"
+        app:layout_constraintBottom_toTopOf="@+id/layout_l_shoulder_y">
+        <TextView style="@style/MotorLabel" android:text="左肩旋轉:" />
+        <TextView style="@style/MotorValue" android:id="@+id/textView_l_shoulder_z" />
+    </LinearLayout>
+
+    <!-- 左肩 Y -->
+    <LinearLayout
+        android:id="@+id/layout_l_shoulder_y"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="@+id/layout_l_shoulder_z"
+        app:layout_constraintTop_toBottomOf="@+id/layout_l_shoulder_z"
+        app:layout_constraintBottom_toTopOf="@+id/layout_l_shoulder_x">
+        <TextView style="@style/MotorLabel" android:text="左肩側抬:" />
+        <TextView style="@style/MotorValue" android:id="@+id/textView_l_shoulder_y" />
+    </LinearLayout>
+
+    <!-- 左肩 X -->
+    <LinearLayout
+        android:id="@+id/layout_l_shoulder_x"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="@+id/layout_l_shoulder_y"
+        app:layout_constraintTop_toBottomOf="@+id/layout_l_shoulder_y"
+        app:layout_constraintBottom_toTopOf="@+id/layout_l_elbow_y">
+        <TextView style="@style/MotorLabel" android:text="左肩前後:" />
+        <TextView style="@style/MotorValue" android:id="@+id/textView_l_shoulder_x" />
+    </LinearLayout>
+
+    <!-- 左手肘 Y -->
+    <LinearLayout
+        android:id="@+id/layout_l_elbow_y"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="@+id/layout_l_shoulder_x"
+        app:layout_constraintTop_toBottomOf="@+id/layout_l_shoulder_x"
+        app:layout_constraintBottom_toBottomOf="@+id/imageView_robot">
+        <TextView style="@style/MotorLabel" android:text="左手肘彎曲:" />
+        <TextView style="@style/MotorValue" android:id="@+id/textView_l_elbow_y" />
+    </LinearLayout>
+
+
+    <!-- 右側馬達數據 -->
+    <!-- 右肩 Z -->
+    <LinearLayout
+        android:id="@+id/layout_r_shoulder_z"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintStart_toEndOf="@+id/imageView_robot"
+        app:layout_constraintTop_toTopOf="@+id/imageView_robot"
+        app:layout_constraintBottom_toTopOf="@+id/layout_r_shoulder_y">
+        <TextView style="@style/MotorLabel" android:text="右肩旋轉:" />
+        <TextView style="@style/MotorValue" android:id="@+id/textView_r_shoulder_z" />
+    </LinearLayout>
+
+    <!-- 右肩 Y -->
+    <LinearLayout
+        android:id="@+id/layout_r_shoulder_y"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintStart_toStartOf="@+id/layout_r_shoulder_z"
+        app:layout_constraintTop_toBottomOf="@+id/layout_r_shoulder_z"
+        app:layout_constraintBottom_toTopOf="@+id/layout_r_shoulder_x">
+        <TextView style="@style/MotorLabel" android:text="右肩側抬:" />
+        <TextView style="@style/MotorValue" android:id="@+id/textView_r_shoulder_y" />
+    </LinearLayout>
+
+    <!-- 右肩 X -->
+    <LinearLayout
+        android:id="@+id/layout_r_shoulder_x"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintStart_toStartOf="@+id/layout_r_shoulder_y"
+        app:layout_constraintTop_toBottomOf="@+id/layout_r_shoulder_y"
+        app:layout_constraintBottom_toTopOf="@+id/layout_r_elbow_y">
+        <TextView style="@style/MotorLabel" android:text="右肩前後:" />
+        <TextView style="@style/MotorValue" android:id="@+id/textView_r_shoulder_x" />
+    </LinearLayout>
+
+    <!-- 右手肘 Y -->
+    <LinearLayout
+        android:id="@+id/layout_r_elbow_y"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintStart_toStartOf="@+id/layout_r_shoulder_x"
+        app:layout_constraintTop_toBottomOf="@+id/layout_r_shoulder_x"
+        app:layout_constraintBottom_toBottomOf="@+id/imageView_robot">
+        <TextView style="@style/MotorLabel" android:text="右手肘彎曲:" />
+        <TextView style="@style/MotorValue" android:id="@+id/textView_r_elbow_y" />
+    </LinearLayout>
+
+
+    <!-- 頂部馬達數據 -->
+    <!-- 脖子 Y -->
+    <LinearLayout
+        android:id="@+id/layout_neck_y"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@+id/imageView_robot"
+        app:layout_constraintEnd_toStartOf="@+id/guideline_center">
+        <TextView style="@style/MotorLabel" android:text="脖子上下:" />
+        <TextView style="@style/MotorValue" android:id="@+id/textView_neck_y" />
+    </LinearLayout>
+
+    <!-- 脖子 Z -->
+    <LinearLayout
+        android:id="@+id/layout_neck_z"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="@+id/layout_neck_y"
+        app:layout_constraintStart_toEndOf="@+id/guideline_center">
+        <TextView style="@style/MotorLabel" android:text="脖子旋轉:" />
+        <TextView style="@style/MotorValue" android:id="@+id/textView_neck_z" />
+    </LinearLayout>
+
+    <!-- 輔助線，用於對齊頂部元件 -->
+    <android.support.constraint.Guideline
+        android:id="@+id/guideline_center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.5" />
+
+
+    <!-- 底部即時訊息 -->
+    <TextView
+        android:id="@+id/textView_log_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="即時訊息"
+        android:textColor="@android:color/black"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageView_robot" />
+
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:background="#F5F5F5"
+        android:padding="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView_log_title">
+
+        <TextView
+            android:id="@+id/textView_log"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="等待接收訊息...\n"
+            android:textColor="@android:color/black"
+            android:textSize="16sp" />
+    </ScrollView>
+
+</android.support.constraint.ConstraintLayout>

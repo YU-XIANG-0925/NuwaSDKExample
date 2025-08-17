@@ -8,12 +8,19 @@
     android:fillViewport="true">
 
     <!-- 將原本的 ConstraintLayout 放在 ScrollView 內部 -->
-    <android.support.constraint.ConstraintLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="48dp">
+        android:padding="16dp">
 
         <!-- 頁面標題 -->
+
+        <!-- Broker 地址標籤 -->
+
+        <!-- Broker 地址輸入框 -->
+
+        <!-- Port 標籤 -->
+
         <TextView
             android:id="@+id/textView_title"
             android:layout_width="wrap_content"
@@ -25,18 +32,17 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Broker 地址標籤 -->
         <TextView
             android:id="@+id/textView_broker"
             android:layout_width="140dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="48dp"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="20dp"
             android:text="Broker 地址:"
             android:textSize="22sp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textView_title" />
 
-        <!-- Broker 地址輸入框 -->
         <EditText
             android:id="@+id/editText_broker"
             android:layout_width="0dp"
@@ -49,9 +55,9 @@
             android:textSize="22sp"
             app:layout_constraintBaseline_toBaselineOf="@+id/textView_broker"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toEndOf="@+id/textView_broker" />
 
-        <!-- Port 標籤 -->
         <TextView
             android:id="@+id/textView_port"
             android:layout_width="140dp"
@@ -129,20 +135,22 @@
             app:layout_constraintStart_toEndOf="@+id/textView_topic" />
 
         <!-- 連線按鈕 -->
+
+        <!-- 連線狀態文字 -->
         <Button
             android:id="@+id/button_connect"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="48dp"
+            android:layout_marginTop="8dp"
             android:paddingTop="16dp"
             android:paddingBottom="16dp"
             android:text="連線"
             android:textSize="24sp"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/editText_topic" />
 
-        <!-- 連線狀態文字 -->
         <TextView
             android:id="@+id/textView_status"
             android:layout_width="wrap_content"
@@ -153,6 +161,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/button_connect" />
 
-    </android.support.constraint.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </ScrollView>

@@ -3,7 +3,7 @@ package com.nuwarobotics.example;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -172,6 +172,7 @@ public class MqttConnectActivity extends AppCompatActivity {
         }
 
         if (clientId.isEmpty()) {
+            // 如果使用者未提供，仍然可以產生一個唯一的 Client ID
             clientId = MqttClient.generateClientId();
         }
 
@@ -180,55 +181,21 @@ public class MqttConnectActivity extends AppCompatActivity {
             serverUri = "tcp://" + serverUri;
         }
 
-        speak("正在嘗試連線");
-        textViewStatus.setText("狀態：正在連線...");
-        buttonConnect.setEnabled(false);
+        Log.d(TAG, "參數準備完成，正在啟動儀表板...");
+        speak("準備開啟儀表板");
+        textViewStatus.setText("狀態：正在啟動儀表板...");
+        buttonConnect.setEnabled(false); // 避免重複點擊
 
-        mqttClient = new MqttAndroidClient(getApplicationContext(), serverUri, clientId);
+        // 建立 Intent 並將所有連線資訊傳遞給 Dashboard
+        Intent intent = new Intent(MqttConnectActivity.this, MqttDashboardActivity.class);
+        intent.putExtra("SERVER_URI", serverUri);
+        intent.putExtra("CLIENT_ID", clientId);
+        intent.putExtra("TOPIC", topic);
 
-        MqttConnectOptions connectOptions = new MqttConnectOptions();
-        connectOptions.setCleanSession(true);
+        startActivity(intent);
 
-        try {
-            final String finalClientId = clientId;
-            final String finalServerUri = serverUri;
-
-            mqttClient.connect(connectOptions, null, new IMqttActionListener() {
-                @Override
-                public void onSuccess(IMqttToken asyncActionToken) {
-                    Log.d(TAG, "MQTT Connection Success!");
-                    speak("MQTT連線成功");
-                    runOnUiThread(() -> textViewStatus.setText("狀態：連線成功"));
-
-                    Intent intent = new Intent(MqttConnectActivity.this, MqttDashboardActivity.class);
-                    intent.putExtra("SERVER_URI", finalServerUri);
-                    intent.putExtra("CLIENT_ID", finalClientId);
-                    intent.putExtra("TOPIC", topic);
-
-                    startActivity(intent);
-
-                    // *** 解決方案：將 finish() 註解掉或移除，以避免無限迴圈 ***
-                    // finish();
-                }
-
-                @Override
-                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                    String errorMessage = "MQTT 連線失敗: " + exception.getMessage();
-                    Log.e(TAG, errorMessage);
-                    speak("MQTT連線失敗");
-                    runOnUiThread(() -> {
-                        textViewStatus.setText("狀態：" + errorMessage);
-                        buttonConnect.setEnabled(true);
-                    });
-                }
-            });
-        } catch (MqttException e) {
-            e.printStackTrace();
-            String errorMessage = "MQTT Exception: " + e.getMessage();
-            speak("MQTT連線失敗");
-            textViewStatus.setText("狀態：" + errorMessage);
-            buttonConnect.setEnabled(true);
-        }
+        // 在這裡呼叫 finish() 是正確的，因為連線畫面已經完成它的任務
+        finish();
     }
 
     private void speak(String text) {

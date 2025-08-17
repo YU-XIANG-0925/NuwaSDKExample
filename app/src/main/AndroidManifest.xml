@@ -9,6 +9,8 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
     <application
         android:name=".NuwaApplication"
         android:allowBackup="true"
@@ -20,6 +22,11 @@
         <activity
             android:name=".Main"
             android:theme="@style/AppTheme.NoActionBar">
+
+        </activity>
+        <!-- 新增 MQTT Activities -->
+        <activity android:name=".MqttConnectActivity">
+            <!-- 將啟動器貼到這裡 -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW" />
@@ -27,6 +34,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity android:name=".MqttDashboardActivity" />
+
+        <!-- Paho MQTT Service -->
+        <service android:name="org.eclipse.paho.android.service.MqttService" />
+
         <activity
             android:name=".sample.SampleActivity"
             android:theme="@style/AppTheme.NoActionBar" />

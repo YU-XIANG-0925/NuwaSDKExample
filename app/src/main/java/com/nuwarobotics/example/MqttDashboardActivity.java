@@ -188,6 +188,12 @@ public class MqttDashboardActivity extends AppCompatActivity {
                 updateMotorAngle(command.motorId, command.angle);
 
                 // 控制實際的機器人馬達 (在模擬器上會跳過)
+                if (isNuwaApiReady) logMessage("isNuwaApiReady : True");
+                if (!isNuwaApiReady) logMessage("isNuwaApiReady : False");
+                if (isEmulator()) logMessage("isEmulator() : True");
+                if (!isEmulator()) logMessage("isEmulator() : False");
+                if (mRobotAPI == null) logMessage("mRobotAPI : null");
+                if (mRobotAPI != null) logMessage("mRobotAPI : not null");
                 if (isNuwaApiReady && mRobotAPI != null && !isEmulator()) {
                     int motorId = getMotorIdFromString(command.motorId);
                     if (motorId != -1) {

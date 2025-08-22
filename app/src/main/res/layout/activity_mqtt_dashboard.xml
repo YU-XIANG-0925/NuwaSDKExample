@@ -8,11 +8,6 @@
     android:background="@android:color/white"
     android:padding="16dp">
 
-    <!-- 中央的機器人背景圖片 -->
-
-    <!-- 左側馬達數據 -->
-    <!-- 左肩 Z -->
-
     <ImageView
         android:id="@+id/imageView_robot"
         android:layout_width="300dp"

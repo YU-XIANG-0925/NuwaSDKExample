@@ -52,7 +52,6 @@ public class MqttDashboardActivity extends AppCompatActivity {
     // Gson for JSON parsing
     private Gson gson = new Gson();
 
-    // 用於 Gson 解析 JSON 陣列的內部類別
     private static class MotorCommand {
         String motorId;
         float angle;
@@ -63,29 +62,23 @@ public class MqttDashboardActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mqtt_dashboard);
 
-        // 1. 從 Intent 中獲取連線資訊
         Intent intent = getIntent();
         serverUri = intent.getStringExtra("SERVER_URI");
         clientId = intent.getStringExtra("CLIENT_ID");
         topic = intent.getStringExtra("TOPIC");
 
-        // 2. 綁定 UI 元件
         bindViews();
-
-        // 3. 初始化 Nuwa SDK (非同步)
         initNuwaSdk();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // 釋放資源
         if (mRobotAPI != null) {
             mRobotAPI.release();
         }
         if (mqttClient != null && mqttClient.isConnected()) {
             try {
-                // 取消訂閱並斷開連線
                 mqttClient.unsubscribe(topic);
                 mqttClient.disconnect();
             } catch (MqttException e) {
@@ -94,15 +87,20 @@ public class MqttDashboardActivity extends AppCompatActivity {
         }
     }
 
+    // *** 解決方案：重新設計 SDK 初始化邏輯 ***
     private void initNuwaSdk() {
+        // 無論是模擬器還是實體機，都先初始化 IClientId 和 NuwaRobotAPI 物件
+        mIClientId = new IClientId(this.getPackageName());
+        mRobotAPI = new NuwaRobotAPI(this, mIClientId);
+
         if (isEmulator()) {
-            Log.d(TAG, "模擬器模式：跳過 Nuwa SDK 初始化，直接啟動 MQTT。");
+            Log.d(TAG, "模擬器模式：Nuwa API 已建立但不會連線。直接啟動 MQTT。");
+            // 在模擬器上，我們手動將 isNuwaApiReady 設為 true，並立即初始化 MQTT
             isNuwaApiReady = true;
             initMqttClient();
         } else {
             Log.d(TAG, "實體裝置：正在初始化 Nuwa SDK...");
-            mIClientId = new IClientId(this.getPackageName());
-            mRobotAPI = new NuwaRobotAPI(this, mIClientId);
+            // 在實體裝置上，我們註冊監聽器，等待 onWikiServiceStart 回呼
             mRobotAPI.registerRobotEventListener(robotEventListener);
         }
     }
@@ -111,11 +109,9 @@ public class MqttDashboardActivity extends AppCompatActivity {
         logMessage("Nuwa SDK 準備完成，正在初始化 MQTT Client...");
         mqttClient = new MqttAndroidClient(getApplicationContext(), serverUri, clientId);
 
-        // 設定 MQTT 的回呼 (Callback)
         mqttClient.setCallback(new MqttCallbackExtended() {
             @Override
             public void connectComplete(boolean reconnect, String serverURI) {
-                // 這個方法會在連線成功或重連成功時被呼叫
                 logMessage("MQTT 連線完成，準備訂閱主題...");
                 subscribeToTopic();
             }
@@ -127,25 +123,19 @@ public class MqttDashboardActivity extends AppCompatActivity {
 
             @Override
             public void messageArrived(String topic, MqttMessage message) throws Exception {
-                // *** 核心邏輯：當收到訊息時，這個方法會被觸發 ***
                 String payload = new String(message.getPayload());
                 logMessage("收到訊息 (" + topic + "): " + payload);
-                // 處理收到的馬達指令
                 handleMotorCommand(payload);
             }
 
             @Override
-            public void deliveryComplete(IMqttDeliveryToken token) {
-                // 這個方法在訊息發送成功時被呼叫，我們目前用不到
-            }
+            public void deliveryComplete(IMqttDeliveryToken token) {}
         });
 
-        // 設定連線選項
         MqttConnectOptions connectOptions = new MqttConnectOptions();
-        connectOptions.setAutomaticReconnect(true); // 啟用自動重連
+        connectOptions.setAutomaticReconnect(true);
         connectOptions.setCleanSession(true);
 
-        // 連線到 Broker
         try {
             mqttClient.connect(connectOptions);
         } catch (MqttException e) {
@@ -174,7 +164,6 @@ public class MqttDashboardActivity extends AppCompatActivity {
 
     private void handleMotorCommand(String jsonPayload) {
         try {
-            // 使用 Gson 解析 JSON 陣列
             Type listType = new TypeToken<List<MotorCommand>>() {}.getType();
             List<MotorCommand> commands = gson.fromJson(jsonPayload, listType);
 
@@ -183,22 +172,25 @@ public class MqttDashboardActivity extends AppCompatActivity {
                 return;
             }
 
+            // 執行您的測試碼
+//            if (isNuwaApiReady) logMessage("isNuwaApiReady : True");
+//            if (!isNuwaApiReady) logMessage("isNuwaApiReady : False");
+//            if (isEmulator()) logMessage("isEmulator() : True");
+//            if (!isEmulator()) logMessage("isEmulator() : False");
+//            if (mRobotAPI == null) logMessage("mRobotAPI : null");
+//            if (mRobotAPI != null) logMessage("mRobotAPI : not null");
+//            if (mRobotAPI != null) mRobotAPI.ctlMotor(NuwaRobotAPI.MOTOR_NECK_Y, 45.0f, 45);
             for (MotorCommand command : commands) {
-                // 更新 UI 上的角度
                 updateMotorAngle(command.motorId, command.angle);
 
-                // 控制實際的機器人馬達 (在模擬器上會跳過)
-                if (isNuwaApiReady) logMessage("isNuwaApiReady : True");
-                if (!isNuwaApiReady) logMessage("isNuwaApiReady : False");
-                if (isEmulator()) logMessage("isEmulator() : True");
-                if (!isEmulator()) logMessage("isEmulator() : False");
-                if (mRobotAPI == null) logMessage("mRobotAPI : null");
-                if (mRobotAPI != null) logMessage("mRobotAPI : not null");
-                if (isNuwaApiReady && mRobotAPI != null && !isEmulator()) {
+                // *** 修改後的判斷邏輯 ***
+                // 在實體裝置上，我們需要確認 Nuwa SDK 服務真的連上了 (isNuwaApiReady)
+//                if ("!isEmulator()" == "!isEmulator()" && isNuwaApiReady && mRobotAPI != null) {
+                if (!isEmulator() && isNuwaApiReady && mRobotAPI != null) {
                     int motorId = getMotorIdFromString(command.motorId);
                     if (motorId != -1) {
                         logMessage("控制馬達: " + command.motorId + " -> " + command.angle);
-                        mRobotAPI.ctlMotor(motorId, command.angle, 45); // 使用預設速度 45
+                        mRobotAPI.ctlMotor(motorId, command.angle, 45);
                     } else {
                         logMessage("警告：找不到馬達 ID '" + command.motorId + "'");
                     }
@@ -211,24 +203,34 @@ public class MqttDashboardActivity extends AppCompatActivity {
 
     private int getMotorIdFromString(String motorName) {
         if (motorName == null) return -1;
-        switch (motorName) {
-            case "NECK_Y": return NuwaRobotAPI.MOTOR_NECK_Y;
-            case "NECK_Z": return NuwaRobotAPI.MOTOR_NECK_Z;
-            case "RIGHT_SHOULDER_Z": return NuwaRobotAPI.MOTOR_RIGHT_SHOULDER_Z;
-            case "RIGHT_SHOULDER_Y": return NuwaRobotAPI.MOTOR_RIGHT_SHOULDER_Y;
-            case "RIGHT_SHOULDER_X": return NuwaRobotAPI.MOTOR_RIGHT_SHOULDER_X;
-            case "RIGHT_ELBOW_Y": return NuwaRobotAPI.MOTOR_RIGHT_ELBOW_Y;
-            case "LEFT_SHOULDER_Z": return NuwaRobotAPI.MOTOR_LEFT_SHOULDER_Z;
-            case "LEFT_SHOULDER_Y": return NuwaRobotAPI.MOTOR_LEFT_SHOULDER_Y;
-            case "LEFT_SHOULDER_X": return NuwaRobotAPI.MOTOR_LEFT_SHOULDER_X;
-            case "LEFT_ELBOW_Y": return NuwaRobotAPI.MOTOR_LEFT_ELBOW_Y;
-            default: return -1; // 找不到對應的馬達
+        if (motorName.equals("NECK_Y")) {
+            return NuwaRobotAPI.MOTOR_NECK_Y;
+        } else if (motorName.equals("NECK_Z")) {
+            return NuwaRobotAPI.MOTOR_NECK_Z;
+        } else if (motorName.equals("RIGHT_SHOULDER_Z")) {
+            return NuwaRobotAPI.MOTOR_RIGHT_SHOULDER_Z;
+        } else if (motorName.equals("RIGHT_SHOULDER_Y")) {
+            return NuwaRobotAPI.MOTOR_RIGHT_SHOULDER_Y;
+        } else if (motorName.equals("RIGHT_SHOULDER_X")) {
+            return NuwaRobotAPI.MOTOR_RIGHT_SHOULDER_X;
+        } else if (motorName.equals("RIGHT_ELBOW_Y")) {
+            return NuwaRobotAPI.MOTOR_RIGHT_ELBOW_Y;
+        } else if (motorName.equals("LEFT_SHOULDER_Z")) {
+            return NuwaRobotAPI.MOTOR_LEFT_SHOULDER_Z;
+        } else if (motorName.equals("LEFT_SHOULDER_Y")) {
+            return NuwaRobotAPI.MOTOR_LEFT_SHOULDER_Y;
+        } else if (motorName.equals("LEFT_SHOULDER_X")) {
+            return NuwaRobotAPI.MOTOR_LEFT_SHOULDER_X;
+        } else if (motorName.equals("LEFT_ELBOW_Y")) {
+            return NuwaRobotAPI.MOTOR_LEFT_ELBOW_Y;
+        } else {
+            return -1;
         }
     }
 
     private void bindViews() {
         textViewLog = findViewById(R.id.textView_log);
-        textViewLog.setText(""); // 清空預設文字
+        textViewLog.setText("");
 
         motorTextViews.put("NECK_Y", (TextView) findViewById(R.id.textView_neck_y));
         motorTextViews.put("NECK_Z", (TextView) findViewById(R.id.textView_neck_z));
@@ -263,12 +265,10 @@ public class MqttDashboardActivity extends AppCompatActivity {
         @Override
         public void onWikiServiceStart() {
             isNuwaApiReady = true;
-            // 只有在 Nuwa SDK 準備好後，才開始進行 MQTT 連線
             initMqttClient();
         }
         @Override
         public void onWikiServiceStop() { isNuwaApiReady = false; }
-        // ... 其他空白的回呼方法 ...
         @Override
         public void onWikiServiceCrash() {}
         @Override

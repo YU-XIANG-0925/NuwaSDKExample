@@ -19,28 +19,26 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity
-            android:name=".Main"
-            android:theme="@style/AppTheme.NoActionBar">
 
-        </activity>
-        <!-- 新增 MQTT Activities -->
-        <activity android:name=".MqttConnectActivity"
+        <!-- 1. 設定 MainPage 為新的啟動 Activity -->
+        <activity android:name=".MainPage"
             android:exported="true">
-            <!-- 將啟動器貼到這裡 -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-                <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
+        <!-- 2. 註冊其他 Activity -->
+        <activity android:name=".Main" android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".MqttConnectActivity" />
         <activity android:name=".MqttDashboardActivity" />
+        <activity android:name=".MqttMotorDataActivity" />
 
         <!-- Paho MQTT Service -->
         <service android:name="org.eclipse.paho.android.service.MqttService" />
 
+        <!-- 其他既有的 Activities -->
         <activity
             android:name=".sample.SampleActivity"
             android:theme="@style/AppTheme.NoActionBar" />
@@ -73,7 +71,7 @@
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".sensor.SensorExampleActivity"
-            android:theme="@style/AppTheme.NoActionBar" /> <!-- Motion SDK Example -->
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".motion.MotionSDKExampleActivity"
             android:theme="@style/SDK.Motion.Example.Primary.Theme"></activity>

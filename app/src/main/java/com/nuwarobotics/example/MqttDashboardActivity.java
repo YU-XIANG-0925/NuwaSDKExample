@@ -1,10 +1,13 @@
 package com.nuwarobotics.example;
 
-import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.RemoteException;
 import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -13,44 +16,31 @@ import com.google.gson.reflect.TypeToken;
 import com.nuwarobotics.service.IClientId;
 import com.nuwarobotics.service.agent.NuwaRobotAPI;
 import com.nuwarobotics.service.agent.RobotEventListener;
+import com.nuwarobotics.service.facecontrol.IonCompleteListener;
 
-import org.eclipse.paho.android.service.MqttAndroidClient;
-import org.eclipse.paho.client.mqttv3.IMqttActionListener;
-import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.IMqttToken;
-import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
-import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MqttDashboardActivity extends AppCompatActivity {
+public class MqttDashboardActivity extends AppCompatActivity implements MqttManager.MqttMessageListener {
 
     private final String TAG = "MqttDashboardActivity";
 
-    // MQTT 連線資訊
-    private String serverUri;
-    private String clientId;
-    private String topic;
-
-    // UI 元件
     private TextView textViewLog;
     private Map<String, TextView> motorTextViews = new HashMap<>();
+    private ListView listViewMotions;
 
-    // Nuwa SDK API
     private NuwaRobotAPI mRobotAPI;
     private IClientId mIClientId;
     private boolean isNuwaApiReady = false;
 
-    // MQTT Client
-    private MqttAndroidClient mqttClient;
-
-    // Gson for JSON parsing
     private Gson gson = new Gson();
+    private Handler mqttPublishHandler = new Handler();
+    private List<String> motionList = new ArrayList<>();
 
     private static class MotorCommand {
         String motorId;
@@ -62,13 +52,47 @@ public class MqttDashboardActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mqtt_dashboard);
 
-        Intent intent = getIntent();
-        serverUri = intent.getStringExtra("SERVER_URI");
-        clientId = intent.getStringExtra("CLIENT_ID");
-        topic = intent.getStringExtra("TOPIC");
+        if (!MqttManager.getInstance().isConnected()) {
+            Toast.makeText(this, "MQTT is not connected", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
 
         bindViews();
         initNuwaSdk();
+
+        listViewMotions.setOnItemClickListener((parent, view, position, id) -> {
+            if (isNuwaApiReady && mRobotAPI != null) {
+                String motionName = motionList.get(position);
+                logMessage("Playing motion: " + motionName);
+                try {
+                    mRobotAPI.playMotion(motionName, new IonCompleteListener.Stub() {
+                        @Override
+                        public void onComplete(String process_name) throws RemoteException {
+                            runOnUiThread(() -> {
+                                logMessage("Motion completed: " + process_name);
+                            });
+                        }
+                    });
+                } catch (Exception e) {
+                    logMessage("Error playing motion: " + e.getMessage());
+                }
+            }
+        });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        MqttManager.getInstance().setListener(this);
+        startPublishingMotorAngles();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        MqttManager.getInstance().removeListener();
+        stopPublishingMotorAngles();
     }
 
     @Override
@@ -77,89 +101,64 @@ public class MqttDashboardActivity extends AppCompatActivity {
         if (mRobotAPI != null) {
             mRobotAPI.release();
         }
-        if (mqttClient != null && mqttClient.isConnected()) {
-            try {
-                mqttClient.unsubscribe(topic);
-                mqttClient.disconnect();
-            } catch (MqttException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
-    // *** 解決方案：重新設計 SDK 初始化邏輯 ***
     private void initNuwaSdk() {
-        // 無論是模擬器還是實體機，都先初始化 IClientId 和 NuwaRobotAPI 物件
         mIClientId = new IClientId(this.getPackageName());
         mRobotAPI = new NuwaRobotAPI(this, mIClientId);
 
         if (isEmulator()) {
-            Log.d(TAG, "模擬器模式：Nuwa API 已建立但不會連線。直接啟動 MQTT。");
-            // 在模擬器上，我們手動將 isNuwaApiReady 設為 true，並立即初始化 MQTT
             isNuwaApiReady = true;
-            initMqttClient();
+            onNuwaSdkReady();
         } else {
-            Log.d(TAG, "實體裝置：正在初始化 Nuwa SDK...");
-            // 在實體裝置上，我們註冊監聽器，等待 onWikiServiceStart 回呼
             mRobotAPI.registerRobotEventListener(robotEventListener);
         }
     }
 
-    private void initMqttClient() {
-        logMessage("Nuwa SDK 準備完成，正在初始化 MQTT Client...");
-        mqttClient = new MqttAndroidClient(getApplicationContext(), serverUri, clientId);
+    private void onNuwaSdkReady() {
+        // Get motion list and set adapter
+        motionList = mRobotAPI.getMotionList();
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, motionList);
+        listViewMotions.setAdapter(adapter);
 
-        mqttClient.setCallback(new MqttCallbackExtended() {
-            @Override
-            public void connectComplete(boolean reconnect, String serverURI) {
-                logMessage("MQTT 連線完成，準備訂閱主題...");
-                subscribeToTopic();
-            }
-
-            @Override
-            public void connectionLost(Throwable cause) {
-                logMessage("MQTT 連線中斷！");
-            }
-
-            @Override
-            public void messageArrived(String topic, MqttMessage message) throws Exception {
-                String payload = new String(message.getPayload());
-                logMessage("收到訊息 (" + topic + "): " + payload);
-                handleMotorCommand(payload);
-            }
-
-            @Override
-            public void deliveryComplete(IMqttDeliveryToken token) {}
-        });
-
-        MqttConnectOptions connectOptions = new MqttConnectOptions();
-        connectOptions.setAutomaticReconnect(true);
-        connectOptions.setCleanSession(true);
-
-        try {
-            mqttClient.connect(connectOptions);
-        } catch (MqttException e) {
-            e.printStackTrace();
-            logMessage("MQTT 連線失敗: " + e.getMessage());
-        }
+        // Start publishing motor angles
+        startPublishingMotorAngles();
     }
 
-    private void subscribeToTopic() {
-        try {
-            mqttClient.subscribe(topic, 0, null, new IMqttActionListener() {
-                @Override
-                public void onSuccess(IMqttToken asyncActionToken) {
-                    logMessage("成功訂閱主題: " + topic);
-                }
+    private void startPublishingMotorAngles() {
+        mqttPublishHandler.postDelayed(publishRunnable, 1000);
+    }
 
-                @Override
-                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                    logMessage("訂閱主題 " + topic + " 失敗！");
-                }
-            });
-        } catch (MqttException e) {
-            e.printStackTrace();
+    private void stopPublishingMotorAngles() {
+        mqttPublishHandler.removeCallbacks(publishRunnable);
+    }
+
+    private Runnable publishRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (isNuwaApiReady && mRobotAPI != null) {
+                // This is an assumed method. Replace with the actual method if different.
+                // Map<String, Float> motorAngles = mRobotAPI.getMotorAngles();
+                // As a placeholder, I will create some dummy data.
+                Map<String, Float> motorAngles = new HashMap<>();
+                motorAngles.put("NECK_Y", 10.0f);
+                motorAngles.put("NECK_Z", 20.0f);
+
+                String jsonPayload = gson.toJson(motorAngles);
+                MqttManager.getInstance().publish(jsonPayload);
+                logMessage("Published motor angles: " + jsonPayload);
+            }
+            mqttPublishHandler.postDelayed(this, 1000);
         }
+    };
+
+    @Override
+    public void onMessageArrived(String topic, MqttMessage message) {
+        String payload = new String(message.getPayload());
+        runOnUiThread(() -> {
+            logMessage("收到訊息 (" + topic + "): " + payload);
+            handleMotorCommand(payload);
+        });
     }
 
     private void handleMotorCommand(String jsonPayload) {
@@ -172,20 +171,9 @@ public class MqttDashboardActivity extends AppCompatActivity {
                 return;
             }
 
-            // 執行您的測試碼
-//            if (isNuwaApiReady) logMessage("isNuwaApiReady : True");
-//            if (!isNuwaApiReady) logMessage("isNuwaApiReady : False");
-//            if (isEmulator()) logMessage("isEmulator() : True");
-//            if (!isEmulator()) logMessage("isEmulator() : False");
-//            if (mRobotAPI == null) logMessage("mRobotAPI : null");
-//            if (mRobotAPI != null) logMessage("mRobotAPI : not null");
-//            if (mRobotAPI != null) mRobotAPI.ctlMotor(NuwaRobotAPI.MOTOR_NECK_Y, 45.0f, 45);
             for (MotorCommand command : commands) {
                 updateMotorAngle(command.motorId, command.angle);
 
-                // *** 修改後的判斷邏輯 ***
-                // 在實體裝置上，我們需要確認 Nuwa SDK 服務真的連上了 (isNuwaApiReady)
-//                if ("!isEmulator()" == "!isEmulator()" && isNuwaApiReady && mRobotAPI != null) {
                 if (!isEmulator() && isNuwaApiReady && mRobotAPI != null) {
                     int motorId = getMotorIdFromString(command.motorId);
                     if (motorId != -1) {
@@ -231,10 +219,11 @@ public class MqttDashboardActivity extends AppCompatActivity {
     private void bindViews() {
         textViewLog = findViewById(R.id.textView_log);
         textViewLog.setText("");
+        listViewMotions = findViewById(R.id.listView_motions);
 
         motorTextViews.put("NECK_Y", (TextView) findViewById(R.id.textView_neck_y));
         motorTextViews.put("NECK_Z", (TextView) findViewById(R.id.textView_neck_z));
-        motorTextViews.put("RIGHT_SHOULDER_Z", (TextView) findViewById(R.id.textView_r_shoulder_z));
+        motorTextViews.put("RIGHT_SHOULDE_Z", (TextView) findViewById(R.id.textView_r_shoulder_z));
         motorTextViews.put("LEFT_SHOULDER_Z", (TextView) findViewById(R.id.textView_l_shoulder_z));
         motorTextViews.put("RIGHT_SHOULDER_Y", (TextView) findViewById(R.id.textView_r_shoulder_y));
         motorTextViews.put("LEFT_SHOULDER_Y", (TextView) findViewById(R.id.textView_l_shoulder_y));
@@ -265,7 +254,7 @@ public class MqttDashboardActivity extends AppCompatActivity {
         @Override
         public void onWikiServiceStart() {
             isNuwaApiReady = true;
-            initMqttClient();
+            runOnUiThread(() -> onNuwaSdkReady());
         }
         @Override
         public void onWikiServiceStop() { isNuwaApiReady = false; }

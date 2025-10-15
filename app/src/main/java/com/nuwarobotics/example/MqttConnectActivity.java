@@ -1,6 +1,5 @@
 package com.nuwarobotics.example;
 
-import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,19 +14,14 @@ import com.nuwarobotics.service.IClientId;
 import com.nuwarobotics.service.agent.NuwaRobotAPI;
 import com.nuwarobotics.service.agent.RobotEventListener;
 
-// 引入 Paho MQTT 相關類別
-import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
 import org.eclipse.paho.client.mqttv3.MqttClient;
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
-import org.eclipse.paho.client.mqttv3.MqttException;
 
 public class MqttConnectActivity extends AppCompatActivity {
 
     private final String TAG = "MqttConnectActivity";
 
-    // UI 元件
     private EditText editTextBroker;
     private EditText editTextPort;
     private EditText editTextClientId;
@@ -35,13 +29,9 @@ public class MqttConnectActivity extends AppCompatActivity {
     private Button buttonConnect;
     private TextView textViewStatus;
 
-    // Nuwa SDK API
     private NuwaRobotAPI mRobotAPI;
     private IClientId mClientId;
     private boolean isNuwaApiReady = false;
-
-    // MQTT Client
-    private MqttAndroidClient mqttClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,17 +45,11 @@ public class MqttConnectActivity extends AppCompatActivity {
         buttonConnect = findViewById(R.id.button_connect);
         textViewStatus = findViewById(R.id.textView_status);
 
-        buttonConnect.setEnabled(false);
-        buttonConnect.setText("Nuwa SDK 初始化中...");
-
-        buttonConnect.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (isNuwaApiReady) {
-                    connectToMqtt();
-                } else {
-                    Toast.makeText(MqttConnectActivity.this, "Nuwa SDK 正在初始化，請稍候...", Toast.LENGTH_SHORT).show();
-                }
+        buttonConnect.setOnClickListener(v -> {
+            if (isNuwaApiReady) {
+                connectToMqtt();
+            } else {
+                Toast.makeText(MqttConnectActivity.this, "Nuwa SDK 正在初始化，請稍候...", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -88,13 +72,6 @@ public class MqttConnectActivity extends AppCompatActivity {
         if (mRobotAPI != null) {
             mRobotAPI.release();
         }
-        if (mqttClient != null && mqttClient.isConnected()) {
-            try {
-                mqttClient.disconnect();
-            } catch (MqttException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     private RobotEventListener robotEventListener = new RobotEventListener() {
@@ -107,6 +84,7 @@ public class MqttConnectActivity extends AppCompatActivity {
                 buttonConnect.setEnabled(true);
             });
         }
+
         @Override
         public void onWikiServiceStop() {
             Log.d(TAG, "Nuwa SDK Service stopped.");
@@ -172,7 +150,6 @@ public class MqttConnectActivity extends AppCompatActivity {
         }
 
         if (clientId.isEmpty()) {
-            // 如果使用者未提供，仍然可以產生一個唯一的 Client ID
             clientId = MqttClient.generateClientId();
         }
 
@@ -181,21 +158,33 @@ public class MqttConnectActivity extends AppCompatActivity {
             serverUri = "tcp://" + serverUri;
         }
 
-        Log.d(TAG, "參數準備完成，正在啟動儀表板...");
-        speak("準備開啟儀表板");
-        textViewStatus.setText("狀態：正在啟動儀表板...");
-        buttonConnect.setEnabled(false); // 避免重複點擊
+        textViewStatus.setText("狀態：正在連線...");
+        buttonConnect.setEnabled(false);
 
-        // 建立 Intent 並將所有連線資訊傳遞給 Dashboard
-        Intent intent = new Intent(MqttConnectActivity.this, MqttDashboardActivity.class);
-        intent.putExtra("SERVER_URI", serverUri);
-        intent.putExtra("CLIENT_ID", clientId);
-        intent.putExtra("TOPIC", topic);
+        MqttManager.getInstance().connect(getApplicationContext(), serverUri, clientId, topic, new IMqttActionListener() {
+            @Override
+            public void onSuccess(IMqttToken asyncActionToken) {
+                Log.d(TAG, "MQTT 連線成功");
+                speak("MQTT 連線成功");
+                MqttManager.getInstance().subscribe();
+                runOnUiThread(() -> {
+                    textViewStatus.setText("狀態：已連線");
+                    Toast.makeText(MqttConnectActivity.this, "連線成功", Toast.LENGTH_SHORT).show();
+                    finish();
+                });
+            }
 
-        startActivity(intent);
-
-        // 在這裡呼叫 finish() 是正確的，因為連線畫面已經完成它的任務
-        finish();
+            @Override
+            public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+                Log.d(TAG, "MQTT 連線失敗: " + exception.getMessage());
+                speak("MQTT 連線失敗");
+                runOnUiThread(() -> {
+                    textViewStatus.setText("狀態：連線失敗");
+                    buttonConnect.setEnabled(true);
+                    Toast.makeText(MqttConnectActivity.this, "連線失敗: " + exception.getMessage(), Toast.LENGTH_LONG).show();
+                });
+            }
+        });
     }
 
     private void speak(String text) {
